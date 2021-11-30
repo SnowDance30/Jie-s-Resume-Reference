@@ -1,3 +1,9 @@
 ## Jie's-Resume-Projects
 
-This repository shows personal projects listed on Jie's application resume.
+To whom it may concern,
+
+This repository shows personal projects. They are only served as 
+demonstration documents to support the resume. 
+
+Best regards,
+Kevin Jie
