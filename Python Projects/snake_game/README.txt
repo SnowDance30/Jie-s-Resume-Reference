@@ -1,6 +1,3 @@
-The project is fully developed by myself.
-
-
 The project is a simple snake game used pygame module. User needs
 to press up, down, left, and right keys to control the snake. The game 
 mainly uses procedure-oriented programing principle.
