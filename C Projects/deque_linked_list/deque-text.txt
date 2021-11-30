@@ -1,0 +1,308 @@
+
+// This is a module that provides a double ended queue of integers ADT
+
+
+#include <stdbool.h>
+
+struct deque;
+
+// The following applies to all functions
+// requires: all deque parameters must be valid (non-null)
+// time: (n) is the number of items in the deque
+
+// deque_create() returns a pointer to a new (empty) deque
+// effects: allocates memory (caller must call deque_destroy)
+// time: O(1)
+struct deque *deque_create(void);
+
+// deque_destroy(deq) destroys the deq
+// effects: deq is no longer valid (freed)
+// time: O(n)
+void deque_destroy(struct deque *deq);
+
+// deque_is_empty(deq) determines if deq is empty
+// time: O(1)
+bool deque_is_empty(const struct deque *deq);
+
+// deque_insert_front(item, deq) inserts item into the front of deq
+// effects: modifies deq
+// time: O(1)
+void deque_insert_front(int item, struct deque *deq);
+
+// deque_front(deq) returns the front of deq
+// requires: deq is not empty
+// time: O(1)
+int deque_front(const struct deque *deq);
+
+// deque_remove_front(deq) removes and returns the front of deq
+// requires: deq is not empty
+// effects: modifies deq
+// time: O(1)
+int deque_remove_front(struct deque *deq);
+
+// deque_insert_back(item, deq) inserts item into the back of deq
+// effects: modifies deq
+// time: O(1)
+void deque_insert_back(int item, struct deque *deq);
+
+// deque_back(deq) returns the back of deq
+// requires: deq is not empty
+// time: O(1)
+int deque_back(const struct deque *deq);
+
+// deque_remove_back(deq) removes and returns the back of deq
+// requires: deq is not empty
+// effects: modifies deq
+// time: O(1)
+int deque_remove_back(struct deque *deq);
+
+// deque_print(deq) prints out the items in deq
+// notes: prints "[empty]\n" if deq is empty
+//        prints "[%d]\n" if deq has a single item
+//        prints "[%d,%d,...,%d]\n" otherwise 
+//               so if the deq from front->back is 8,6,7,5,3,0,9
+//               prints "[8,6,7,5,3,0,9]\n"
+// effects: produces output
+// time: O(n)
+void deque_print(const struct deque *deq);
+
+// deque_print_reverse(deq) prints out the items in deq in reverse
+// notes: prints "[empty]\n" if deq is empty
+//        prints "[%d]\n" if deq has a single item
+//        prints "[%d,%d,...,%d]\n" otherwise 
+//               so if the deq from front->back is 8,6,7,5,3,0,9
+//               prints "[9,0,3,5,7,6,8]\n"
+// effects: produces output
+// time: O(n)
+void deque_print_reverse(const struct deque *deq);
+
+
+
+
+// this is a very simple test for your deque module
+
+
+#include <assert.h>
+#include "deque.h"
+
+int main(void) {
+  struct deque *deq = deque_create();
+  // deque_print_reverse(deq); /* [empty] */
+  deque_print(deq);
+  deque_insert_front(1, deq);
+  assert(deque_front(deq) == 1);
+  assert(deque_back(deq) == 1);
+  deque_insert_back(9, deq);
+  assert(deque_back(deq) == 9);
+  // deque_print(deq); /* [1,9] */
+  deque_print(deq);
+  assert(deque_remove_front(deq) == 1);
+  deque_print(deq);
+  assert(deque_back(deq) == 9);
+  assert(deque_front(deq) == 9);
+  assert(deque_remove_back(deq) == 9);
+  assert(deque_is_empty(deq));
+  deque_insert_back(1, deq);
+  deque_insert_back(2, deq);
+  deque_insert_back(3, deq);
+  deque_insert_back(4, deq);
+  deque_print(deq);
+  deque_print_reverse(deq);
+  assert(deque_remove_front(deq) == 1);
+  assert(deque_remove_front(deq) == 2);
+  assert(deque_remove_front(deq) == 3);
+  assert(deque_remove_front(deq) == 4);
+  assert(deque_is_empty(deq));
+  deque_insert_front(1, deq);
+  deque_insert_front(2, deq);
+  deque_insert_front(3, deq);
+  deque_insert_front(4, deq);
+  deque_print(deq);
+  deque_print_reverse(deq);
+  assert(deque_remove_back(deq) == 1);
+  assert(deque_remove_back(deq) == 2);
+  assert(deque_remove_back(deq) == 3);
+  assert(deque_remove_back(deq) == 4);
+  assert(deque_is_empty(deq));
+  deque_insert_front(2, deq);
+  deque_insert_front(1, deq);
+  deque_insert_back(3, deq);
+  deque_insert_back(4, deq);
+  deque_print(deq);
+  deque_print_reverse(deq);
+  assert(deque_remove_back(deq) == 4);
+  assert(deque_remove_front(deq) == 1);
+  assert(deque_remove_back(deq) == 3);
+  assert(deque_remove_front(deq) == 2);
+  assert(deque_is_empty(deq));
+  deque_destroy(deq);
+}
+
+
+// The module shows the implementation in "deque.h" a double ended queue ADT.
+
+#include "deque.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+
+struct llnode {
+  int item;
+  struct llnode *prev;
+  struct llnode *next;
+};
+
+struct deque {
+  struct llnode *front;
+  struct llnode *back;
+};
+
+
+// See "deque.h" file for detial documentation.
+struct deque *deque_create(void) {
+  struct deque *deq = malloc(sizeof(struct deque));
+  deq->front = NULL;
+  deq->back = NULL;
+  return deq;
+}
+
+
+// See "deque.h" file for detial documentation.
+void deque_destroy(struct deque *deq) {
+  assert(deq);
+  struct llnode *next = NULL;
+  for (struct llnode *node = deq->front; node != NULL; node = next) {
+    next = node->next;
+    free(node);
+  }
+  free(deq);
+}
+
+
+// See "deque.h" file for detial documentation.
+bool deque_is_empty(const struct deque *deq) {
+  assert(deq);
+  return !deq->front;
+}
+
+
+// See "deque.h" file for detial documentation.
+void deque_insert_front(int item, struct deque *deq) {
+  assert(deq);
+  struct llnode *node = malloc(sizeof(struct llnode));
+  node->item = item;
+  if (deq->front == NULL) {
+    deq->front = node;
+    deq->back = node;
+    node->next = NULL;
+    node->prev = NULL;
+  } else {
+    node->next = deq->front;
+    node->next->prev = node;
+    node->prev = NULL;
+    deq->front = node;
+  }
+}
+
+
+// See "deque.h" file for detial documentation.
+int deque_front(const struct deque *deq) {
+  assert(deq);
+  assert(deq->front);
+  return deq->front->item;
+}
+
+
+// See "deque.h" file for detial documentation.
+int deque_remove_front(struct deque *deq) {
+  assert(deq);
+  assert(deq->front);
+  int item = deq->front->item;
+  struct llnode *front = deq->front;
+  if (front->next == NULL) {
+    deq->front = NULL;
+    deq->back = NULL;
+  } else {
+    deq->front = deq->front->next;
+    deq->front->prev = NULL;
+  }
+  free(front);
+  return item;
+}
+
+
+// See "deque.h" file for detial documentation.
+void deque_insert_back(int item, struct deque *deq) {
+  assert(deq);
+  struct llnode *node = malloc(sizeof(struct llnode));
+  node->item = item;
+  if (deq->back == NULL) {
+    deq->front = node;
+    deq->back = node;
+    node->next = NULL;
+    node->prev = NULL;
+  } else {
+    node->prev = deq->back;
+    node->next = NULL;
+    node->prev->next = node;
+    deq->back = node;
+  }
+}
+
+
+// See "deque.h" file for detial documentation.
+int deque_back(const struct deque *deq) {
+  assert(deq);
+  assert(deq->back);
+  return deq->back->item;
+}
+
+
+// See "deque.h" file for detial documentation.
+int deque_remove_back(struct deque *deq) {
+  assert(deq);
+  assert(deq->back);
+  struct llnode *node = deq->back;
+  int item = node->item;
+  if (node->prev == NULL) {
+    deq->back = NULL;
+    deq->front = NULL;
+  } else {
+    deq->back = node->prev;
+    deq->back->next = NULL;
+  }
+  free(node);
+  return item;
+}
+
+
+// See "deque.h" file for detial documentation.
+void deque_print(const struct deque *deq) {
+  assert(deq);
+  if (deq->front == NULL) {
+    printf("[empty]\n");
+  } else {
+    printf("[%d", deq->front->item);
+    for (struct llnode *node = deq->front->next; node != NULL; node = node->next) {
+      printf(",%d", node->item);
+    }
+    printf("]\n");
+  }
+}
+
+
+// See "deque.h" file for detial documentation.
+void deque_print_reverse(const struct deque *deq) {
+  assert(deq);
+  if (deq->back == NULL) {
+    printf("[empty]\n");
+  } else {
+    printf("[%d", deq->back->item);
+    for (struct llnode * node = deq->back->prev; node != NULL; node = node->prev) {
+      printf(",%d", node->item);
+    }
+    printf("]\n");
+  }
+}
+
+

@@ -1,0 +1,264 @@
+// A module for an int sequence ADT (with a maximum length)
+
+#include <stdbool.h>
+
+
+extern const int SEQUENCE_MAXLEN; // define as 1024 in your .c file
+
+
+struct sequence {
+  int len;
+  int maxlen;
+  int data[1024];
+};
+
+// The following applies to all functions:
+// requires: all seq pointers are valid (not NULL)
+//           all function pointers are valid (not NULL)
+
+// sequence_init(seq) initializes (or resets) seq to be empty
+//   with maximum capacity SEQUENCE_MAXLEN
+// effects: modifies seq
+void sequence_init(struct sequence *seq);
+
+// sequence_length(seq) returns the number of items in seq
+int sequence_length(const struct sequence *seq);
+
+// sequence_item_at(seq, pos) returns the item in seq at position pos
+// requires: 0 <= pos < sequence_length(seq)
+int sequence_item_at(const struct sequence *seq, int pos);
+
+// sequence_insert_at(seq, pos, val) inserts a new item with value val
+//   at position pos in seq
+// note: changes the position of items that were at position >= pos
+// requires: 0 <= pos <= sequence_length(seq) < SEQUENCE_MAXLEN
+// effects: modifies seq
+void sequence_insert_at(struct sequence *seq, int pos, int val);
+
+// sequence_remove_at(seq, pos) removes the item at position pos in seq
+//   and returns the removed value
+// note: changes the position of items that were at position > pos
+// requires: 0 <= pos < sequence_length(seq)
+// effects: modifies seq
+int sequence_remove_at(struct sequence *seq, int pos);
+
+
+
+// sequence_equiv(seq1, seq2) determines if seq1 and seq2 are equivalent
+//   (they both have the same length and have identical sequences of items)
+bool sequence_equiv(const struct sequence *seq1, const struct sequence *seq2);
+
+// sequence_print(seq) prints out the items in seq
+//   using the format: "[item_0,item_1,...,item_last]\n"
+//   or "[empty]\n"
+// examples: [1,3,6]
+//           [42]
+//           [empty]
+// effects: produces output
+void sequence_print(const struct sequence *seq);
+
+// sequence_build(seq, f, n) builds a sequence [f(0),f(1),..,f(n-1)]
+// note: ignores ("overwrites") previous contents of seq
+// requires: 0 <= n <= SEQUENCE_MAXLEN
+// effects: modifies seq
+void sequence_build(struct sequence *seq, int (*f)(int), int n);
+
+// sequence_filter(seq, f) removes all items i where f(i) is false
+// effects: modifies seq
+void sequence_filter(struct sequence *seq, bool (*f)(int));
+
+// sequence_append(seq1, seq2) appends all items from seq2 to the end
+//   of seq1
+// requires: seq1 and seq2 are different sequences
+//           sequence_length(seq1) + sequence_length(seq2) <= SEQUENCE_MAXLEN
+// effects: modifies seq1
+void sequence_append(struct sequence *seq1, const struct sequence *seq2);
+
+// sequence_remove_dups(seq) removes all duplicates from seq
+//   (keeping each first occurrence)
+// examples: [1,3,6] => [1,3,6]
+//           [1,1,3,1,6,1,3] => [1,3,6]
+// effects: modifies seq
+void sequence_remove_dups(struct sequence *seq);
+
+
+// The module shows the implementation of int sequence ADT in sequence.h
+
+#include <stdio.h>
+#include "sequence.h"
+#include <stdlib.h>
+#include <assert.h>
+
+/////////////////////////////////////////////////////////////////////////////
+// Helper functions:
+
+// move_elements(seq, count, record) moves elements which is marked in record
+//   in data field of seq, and at last len filed of seq minus count.
+// effects: modifies seq
+static void move_elements(struct sequence *seq, int count, int *record) {
+  assert(seq && record);
+  for (int i = 0; i < seq->len - 1; ++i) {
+    if (record[i] == 1) {
+      for (int j = i + 1; j < seq->len; ++j) {
+        if (record[j] == 0) {
+          seq->data[i] = seq->data[j];
+          record[i] = 0;
+          record[j] = 1;
+          break;
+        }
+      }
+    }
+  }
+  seq->len -= count;
+}
+
+/////////////////////////////////////////////////////////////////
+
+// The following applies to all functions:
+// requires: all seq pointers are valid (not NULL)
+//           all function pointers are valid (not NULL)
+
+// see "sequence.h" for documentation
+void sequence_init(struct sequence *seq) {
+  assert(seq);
+  seq->len = 0;
+  seq->maxlen = 1024;
+}  
+
+// see "sequence.h" for documentation
+int sequence_length(const struct sequence *seq) {
+  assert(seq);
+  return seq->len;
+}
+
+// see "sequence.h" for documentation
+int sequence_item_at(const struct sequence *seq, int pos) {
+  assert(seq);
+  assert(0 <= pos && pos < seq->len);
+  return seq->data[pos];
+}
+
+// see "sequence.h" for documentation
+void sequence_insert_at(struct sequence *seq, int pos, int val) {
+  assert(seq);
+  assert(0 <= pos && pos <= seq->len && seq->len < seq->maxlen);
+  if (seq->len == 0) {
+    seq->data[0] = val;
+    seq->len += 1;
+  } else {
+    for (int i = seq->len; i > pos; --i) {
+      seq->data[i] = seq->data[i - 1];
+    }
+    seq->data[pos] = val;
+    seq->len += 1;
+  }
+}
+
+// see "sequence.h" for documentation
+int sequence_remove_at(struct sequence *seq, int pos) {
+  assert(seq);
+  assert(0 <= pos && pos < seq->len);
+  int val = seq->data[pos];
+  for (int i = pos; i < seq->len; ++i) {
+    seq->data[i] = seq->data[i + 1];
+  }
+  seq->len -= 1;
+  return val;
+}
+
+
+// see "sequence.h" for documentation
+bool sequence_equiv(const struct sequence *seq1, const struct sequence *seq2) {
+  assert(seq1 && seq2);
+  bool check = true;
+  if (seq1->len == seq2->len) {
+    for (int i = 0; i < seq1->len; ++i) {
+      if (seq1->data[i] != seq2->data[i]) {
+        check = false;
+        break;
+      }
+    }
+  } else {
+    return false;
+  }
+  if (check == true) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// see "sequence.h" for documentation
+void sequence_print(const struct sequence *seq) {
+  assert(seq);
+  if (seq->len == 0) {
+    printf("[empty]\n");
+  } else {
+    printf("[");
+    for (int i = 0; i < seq->len - 1; ++i) {
+      printf("%d,", seq->data[i]);
+    }
+    printf("%d]\n", seq->data[seq->len - 1]);
+  }
+}
+
+
+// see "sequence.h" for documentation
+void sequence_build(struct sequence *seq, int (*f)(int), int n) {
+  assert(seq);
+  assert(f);
+  assert(0 <= n && n <= seq->maxlen);
+  for (int i = 0; i < n; ++i) {
+    seq->data[i] = f(i);
+  }
+  seq->len = n;
+}
+
+
+// see "sequence.h" for documentation
+void sequence_filter(struct sequence *seq, bool (*f)(int)) {
+  assert(seq);
+  assert(f);
+  int count = 0;
+  int record[1024] = {0};
+  for (int i = 0; i < seq->len; ++i) {
+    if (!f(seq->data[i])) {
+      record[i] = 1;
+      count += 1;
+    }
+  }
+  move_elements(seq, count, record);
+}
+
+
+
+// see "sequence.h" for documentation
+void sequence_append(struct sequence *seq1, const struct sequence *seq2) {
+  assert(seq1 && seq2 && seq1 != seq2);
+  assert(seq1->len + seq2->len <= seq1->maxlen);
+  for (int i = seq1->len; i < seq1->len + seq2->len; ++i) {
+    seq1->data[i] = seq2->data[i - seq1->len];
+  }
+  seq1->len = seq1->len + seq2->len;
+}
+
+
+
+
+// see "sequence.h" for documentation
+void sequence_remove_dups(struct sequence *seq) {
+  assert(seq);
+  int count = 0;
+  int record[1024] = {0};
+  for (int i = seq->len - 1; i > 0; --i) {
+    for (int j = i - 1; j >= 0; --j) {
+      if (seq->data[i] == seq->data[j]) {
+        record[i] = 1;
+        count += 1;
+        break;
+      }
+    }
+  }
+  move_elements(seq, count, record);
+}
+
