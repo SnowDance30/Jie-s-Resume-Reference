@@ -1,6 +1,3 @@
-The project is fully developed by myself.
-
-
 The project is a student information management system. It
 implements the project by OOP design, multiple functions design, 
 files read and write operations, list, dictionary, and string 
