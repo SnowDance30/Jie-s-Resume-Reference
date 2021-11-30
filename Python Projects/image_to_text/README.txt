@@ -1,5 +1,4 @@
-* This project is developed by me, and the theory part
-is fully explaiend and cited below. *
+* The theory part is fully explaiend and cited below. *
 
 First, make sure Python3 is available on your environment.
 
