@@ -1,0 +1,507 @@
+/**
+ * Purpose: This class is user interface. Most of the prompts are here to guide
+ * 			users how to use the program(play the game). A built-in instruction
+ * 			is written in this class. The class will call other methods to start 
+ * 			the game. 
+ * Created by: Kevin Jie
+ * Created on: Jan 14th, 2019
+ */
+import java.util.Scanner;
+
+public class Interface
+{
+	private static Scanner answer = new Scanner(System.in);
+	private static String key;
+	private static boolean check = true;	
+	
+	
+	//Print a briefly and clear instruction to the users.
+	private static void instruction()
+	{
+		System.out.println("Welcome to Snakes and Ladders game!");
+		System.out.println("In this game, two players will versus each other, and one will become the winner!\n");
+		System.out.println("Quick Instruction of the game:");
+		System.out.println("The board has 100 tiles in total, and two players will both start at the 0th tile.");
+		System.out.println("***The player who reaches EXACT 100th tile first will WIN the game!***");
+		System.out.println("In this game, the 1ST PLAYER will ALWAYS roll the dice FIRST!");
+		System.out.println("Each player will take turns to roll the dice (press \"p\") to advance between 1 and 6.");
+		System.out.println("If players lands on a head of a snake, they will go back to the tile containning the tail of the sanke.");
+		System.out.println("If players lands on a bottom of a ladder, they will climb up to the tile containning the top of the ladder.");
+		System.out.println("If players will land over 100th tile, he/she will bounce back.\n");
+		System.out.println("Scoring:");
+		System.out.println("1. Climb a ladder: +10 points	2. Step a snake's head: -5 points	3. Arrive at 100th: +50 points");
+		System.out.println("4. At the END of every 5th round, each play will get 10 points.\n");
+		
+		//Start the game by press 'y'.
+		char temp = 'y';
+		while(check)
+		{
+			System.out.println("If you finish reading the instruction, press \"y\" to start your game.");
+			key = answer.nextLine();
+			if (key.charAt(0) == temp)
+			{
+				check = false;
+			}
+		}
+		System.out.println("\nGame starts! Have fun!\n");
+		
+		//Get players' name.
+		System.out.println("Please enter 1st player's name:");
+		MainGame.p1_Name = answer.nextLine();
+		System.out.println("Please enter 2nd player's name:");
+		MainGame.p2_Name = answer.nextLine();
+		
+		System.out.println();
+	}
+	
+	
+	//Custom function to display previous results.
+	public static void displaySort()
+	{
+		while(true)
+		{
+			System.out.println("Do you want to see the precvious result? Press \"y\"(yes) or \"n\"(no).");
+			key = answer.nextLine();
+			char temp1 = 'y';
+			char temp2 = 'n';
+			//Display the data.
+			if(key.charAt(0) == temp1)
+			{
+				Database.display();
+				break;
+			}
+			//End the method
+			else if(key.charAt(0) == temp2)
+			{
+				return;
+			}
+		}
+	}
+	
+	
+	//Main method.
+	public static void main(String[] args)
+	{
+		instruction();
+		MainGame.play();
+		displaySort();
+		System.out.println("\nYou may restart the game to play a new game.");
+	}
+	
+
+}
+
+/**
+ * Purpose: This class constructs the main body of the game. It has a 
+ * 			method to make players act by turns. It describes how players
+ * 			will move, how to count scores and how to end the game properly.
+ * 			It also has a recurrsion method help to count the bonus scores.
+ * Created by: Kevin Jie
+ * Created on: Jan 14th, 2019
+ */
+import java.util.Scanner;
+
+public class MainGame 
+{
+	private static Scanner answer = new Scanner(System.in);
+	private static String key;
+	private static boolean check1 = true;
+	private static boolean check2 = false;
+	private static int dice;
+	private static int countTurn = 0;
+	
+	//player1 information
+	public static int p1_Loc = 0;
+	public static String p1_Name;
+	public static int p1_Scor = 0;
+	
+	//player2 information
+	public static String p2_Name;
+	public static int p2_Loc = 0;
+	public static int p2_Scor = 0;
+	
+	
+	//The core method controls which player's turn, rolling the dice, moving and scoring
+	public static void play() 
+	{
+		//Create a set of temporary copies which will hold player's information
+		String temp_Name = "";
+		int temp_Loc = 0;
+		int temp_Scor = 0;
+		
+		//The round will continue going until one player wins
+		while (true) 
+		{
+			countTurn += 1;		//Start and count one new round
+			switch(countTurn % 2)	//Determine the current turn is odd or even
+			{
+				//If even, it is player2's turn, pass the values to the temporary copies
+				case 0:
+					temp_Name = p2_Name;
+					temp_Loc = p2_Loc;
+					temp_Scor = p2_Scor;
+					break;
+				
+				//If even, it is player2's turn, pass the values to the temporary copies
+				case 1:
+					temp_Name = p1_Name;
+					temp_Loc = p1_Loc;
+					temp_Scor = p1_Scor;
+					break;
+			}
+
+			System.out.println("\n");
+			
+			//print current round number (not the turn number)
+			if (countTurn % 2 == 1)
+			{
+				System.out.println("Round " + (countTurn/2+1) + ":");
+			}
+			
+			//press 'p' to roll the dice
+			while (check1) 
+			{
+				System.out.println("\t" + temp_Name + ", it's your turn! Press \"p\" to roll the dice!");
+				key = answer.nextLine();
+				if (key.equalsIgnoreCase("p"))
+				{
+					check1 = false;
+				}
+			}
+			
+			check1 = true;	//Edit the boolean condition to ture 
+			
+			//Use built-in Math.random method to generate a number between 1 to 6
+			dice = (int) (Math.random() * 6);	
+			if (dice == 0) 
+			{
+				dice = 6;
+			}
+			
+			//If player will land before 100
+			if((temp_Loc + dice) < 100)
+			{
+				temp_Loc += dice;	//Move to the new location normally.
+				System.out.println("	Your dice is " + dice + ", your current location is AT " + temp_Loc + ".");
+				temp_Loc = GameBoard.placeCheck(temp_Loc);	//Check the tile whether it is special
+				temp_Scor = GameBoard.addScores(temp_Scor);	//Check whether should change the score
+			}
+			//If player will land at 100
+			else if ((temp_Loc + dice) == 100)
+			{
+				temp_Loc += dice;	//Move to the new location
+				System.out.println("	Your dice is " + dice + ", your current location is AT " + temp_Loc + ".");
+				temp_Scor += 50;	//Gain 50 pts.
+				check2 = true;	//Activate end game code
+			}
+			//if player will land beyond 100
+			else 
+			{
+				temp_Loc = 100 - (temp_Loc + dice - 100);	//Bounce back to a new location
+				System.out.println("	Your dice is " + dice + ", you wont't arrive at 100, so you bounce back to " + temp_Loc + ".");
+				temp_Loc = GameBoard.placeCheck(temp_Loc);	//Check the tile whether it is special
+				temp_Scor = GameBoard.addScores(temp_Scor);//Check whether should change the score
+			}
+			
+			//Determine it is which player's round, then pass the temporary values back to the original variables
+			switch(countTurn % 2)
+			{			
+				case 0:
+					p2_Loc = temp_Loc;
+					p2_Scor = temp_Scor;
+					break;
+					
+				case 1:
+					p1_Loc = temp_Loc;
+					p1_Scor = temp_Scor;
+					break;
+			}
+			
+			//If one player lands at 100
+			if(check2 == true)
+			{
+				bonusAdd(countTurn);	//Add bonus-round scores to each player
+				System.out.println("\n\nGame Over.");
+				System.out.println("Congratulation! " + temp_Name + ", you are the WINNER!!! Get 50 pts!\n");	
+				System.out.println(p1_Name + ": Your socre is " + p1_Scor + ".");
+				System.out.println(p2_Name + ": Your socre is " + p2_Scor + "."); 
+				
+				//Use built-in String class method to convert winner's round and scores to strings
+				String round = String.valueOf(countTurn/2+1);
+				String grade = String.valueOf(p1_Scor);
+				if(p1_Scor < p2_Scor)	//Determine winner's scores
+				{	
+					grade = String.valueOf(p2_Scor);
+				}
+				
+				//Use the strings to write winner's information into an xml file.
+				Database.addPeople(temp_Name, round ,grade);
+				
+				//Finish the method
+				return;
+			}
+		}
+	}
+	
+	
+	//A custom reccursive function to count bonus-round scores
+	private static void bonusAdd(int count)
+	{
+		//Base case, if less than 10 turns
+		if (count / 10 == 0)
+		{
+			return;
+		}
+		//Each player will get 10 bonus scores if the number of turns is more than 10
+		else 
+		{
+			p1_Scor += 10;
+			p2_Scor += 10;
+			bonusAdd(count - 10);
+		}
+	}
+
+}
+
+/**
+ * Purpose: This class constructs an abstract game board for the game.
+ * 			It sets the locations of ladders and snakes. It also has 
+ * 			methods to detect whether players are standing on a special
+ * 			tile (a bottom of a ladder or a head of a snake), then add or
+ * 			decrease the scores.
+ * Created by: Kevin Jie
+ * Created on: Jan 14th, 2019
+ */
+public class GameBoard 
+{
+	//Store special tiles information in arrays
+	private static int[] heads = {25, 34, 47, 65, 87, 91, 99};
+	private static int[] tails = {5, 1, 19, 52, 57, 61, 69};
+	private static int[] tops = {27, 51, 55, 70, 95, 98};
+	private static int[] bots = {6, 3, 36, 20, 63, 68};
+	
+	private static boolean l_Check;
+	private static boolean s_Check;
+	
+	
+	//The method will detect whether there needs a move at current tile, return the new location back.
+	public static int placeCheck(int place)
+	{
+		l_Check = false;
+		s_Check = false;
+		
+		//Check ladder by linear search, if qualified, return the new location and skip the snake check.
+		for(int q = 0; q < bots.length; q++)
+		{
+			//Move the player up to a new location.
+			if (place == bots[q])
+			{
+				place = tops[q];
+				System.out.println("	Lucky! You find a ladder! You climbed to " +  tops[q] + " tile now!");
+				l_Check = true;	// Activate ladder boolean check
+				return place;
+			}
+		}
+		
+		//Check snake by linear search
+		for(int q = 0; q< heads.length; q++)
+		{
+			//Move the player down to a new location.
+			if (place == heads[q])
+			{
+				place = tails[q];
+				System.out.println("	Sad! You step on a snake head! You fell to " +  tails[q] + " tile now!");
+				s_Check = true;	//Activate snake boolean check
+				return place;
+			}
+		}
+		
+		//If the tile is not special, return the original location.
+		return place;
+	}
+	
+	
+	//Add or reduce scores by stepping on a ladder or a snake.
+	public static int addScores(int scores)
+	{
+		if (l_Check == true)	//If step on a ladder, add scores
+		{
+			scores += 10;
+		}
+		else if(s_Check == true)	//If step on a snake head, reduce scores
+		{
+			scores -= 5; 
+		}
+		return scores;
+	}
+	
+}
+
+/**
+ * Purpose: The class is a file operating class. The class has method to write
+ * 			previous game data into an xml file. It also can sort the data by 
+ * 			highest scores and display a list with all the data on the console.
+ * Created by: Kevin Jie
+ * Created on: Jan 14th, 2019
+ */
+import java.io.*;
+import java.util.ArrayList;
+import nu.xom.*;
+
+public class Database 
+{
+	private static Document doc;
+	private static Element root;
+	private static Elements allScores;
+	
+	//Three arraylists will help to sort the xml data later.
+	private static ArrayList<Integer> scores = new ArrayList<Integer>();
+	private static ArrayList<String> names = new ArrayList<String>();
+	private static ArrayList<String> round = new ArrayList<String>();
+
+
+	//Write the winner's data into an xml file.
+	public static void addPeople(String name, String count, String grade) 
+	{
+		//Hold the xml file path in a file object
+		File file = new File("Result.xml");
+
+		//If the file has created before.
+		if (file.exists()) 
+		{
+			//Use Builder class to read the file, document data and retrieve the root element in the file.
+			try 
+			{
+				Builder builder = new Builder(); 
+				doc = builder.build(file);
+				root = doc.getRootElement();
+			}
+			//Catch the following errors if any, then display the prompts.
+			catch(IOException e)
+			{
+				System.out.println("Error: " + e);
+			}
+			
+			catch(ParsingException e)
+			{
+				System.out.println("Error: " + e);
+			}
+		}
+		//Create a root element if there is no previous file.
+		else
+		{
+			root = new Element("gameResult");
+			doc = new Document(root);
+		}
+		
+		//Create necessary elements
+		Element info = new Element ("information");
+		Element winner = new Element("winner");
+		Element round = new Element ("round");
+		Element score = new Element ("score");
+		    	
+		//Name the elements by previous strings data
+		winner.appendChild(name);
+		round.appendChild(count);
+		score.appendChild(grade);
+		
+		//Append child element to make a hierarchy
+		root.appendChild(info);
+		info.appendChild(winner);
+		info.appendChild(round);
+		info.appendChild(score);
+		
+		//Try use FileWritter class to append new data into the xml file.
+		try 
+	    {
+	    	FileWriter xmlfile = new FileWriter("Result.xml");
+	    	BufferedWriter writer =  new BufferedWriter(xmlfile);
+	    	writer.append(doc.toXML());
+	    	writer.close();
+        }
+		//Catch errors if any
+        catch (IOException e) 
+	    {
+        	System.out.println("Error: " + e);
+        }    		
+	}
+	
+	
+	//Display the data on the console by the highest scores order
+	public static void display()
+	{
+    	//Create a file object of the xml file and a new builder object
+		File file = new File("Result.xml");
+    	Builder builder = new Builder();
+
+    	//Try to read data from the file, retrieve all the child elements, then print them out.
+    	try
+    	{
+    		doc = builder.build(file);
+    		root = doc.getRootElement();
+    		allScores = root.getChildElements();
+    		
+    		sort(); //Call the custom method to sort the data.
+    	   
+    		//Print out the data.
+    		System.out.println("\nResult:");
+    		for (int q = 0; q< scores.size(); q++)
+    		{
+  
+    			System.out.println("Winner: " + names.get(q) + "\tRound: " + round.get(q) + "\tScores: " + scores.get(q));    			   
+    		}
+    	   
+    	}	
+    	//Print out prompts if any error occurs.
+    	catch(IOException e)
+    	{
+    		System.out.println("This file does not exist.");
+    	}
+    	catch(ParsingException e)
+    	{
+    		System.out.println("This file does not exist.");
+    	}
+	}
+	
+	
+	//Custom functions to sort the xml data by storing and sorting them in arraylists.
+	private static void sort()
+	{
+		//Import data to arraylists from root elements.
+		for (int j = 0 ; j < allScores.size() ; j++)
+ 	   	{
+ 		   scores.add(Integer.parseInt(allScores.get(j).getFirstChildElement("score").getValue()));
+ 		   names.add(allScores.get(j).getFirstChildElement("winner").getValue());
+ 		   round.add(allScores.get(j).getFirstChildElement("round").getValue());
+ 	   	}
+ 	   
+ 	   //Selection sort from the highest to the lowest scores.
+ 	   for (int q = scores.size()-1; q > 0; q--)
+ 	   {
+ 		   int min = q;
+ 		   for (int i = 0; i < q; i++)
+ 		   {
+ 			   if (scores.get(i) < scores.get(min))
+ 			   {
+ 				   min = i;
+ 			   }
+ 		   }
+ 		   
+ 		   //Change the order of scores.
+ 		   int temp = scores.get(min);
+ 		   scores.set(min, scores.get(q));
+ 		   scores.set(q, temp);
+ 		   
+ 		   //Change the corresponding order of winner names.
+ 		   String temp1 = names.get(min);
+ 		   names.set(min, names.get(q));
+ 		   names.set(q,  temp1);
+ 		   
+ 		   //Change the corresponding order of winner rounds.
+ 		   temp1 = round.get(min);
+ 		   round.set(min,  round.get(q));
+ 		   round.set(q,  temp1);
+ 	   }
+	}
+	
+}
